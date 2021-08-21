@@ -2,6 +2,7 @@ import os
 
 from flask import Flask, render_template, request, jsonify
 from flask_restful import Api, Resource
+from sqlalchemy import create_engine
 
 from extensions import db
 from utils import get_connector_for_database
@@ -64,6 +65,31 @@ class ServerRes(Resource):
 @app.route("/home")
 def home():
     return render_template("home.html", text="text")
+
+@app.route("/connect", methods=["GET"])
+def connect():
+    db_url = request.args.get("url")
+    app.config["db_url"] = db_url
+    engine = create_engine(db_url, echo=False)
+    return "connection successful"
+
+
+@app.route("/list_tables", methods=["GET"])
+def list_tables():
+    engine = create_engine(app.config["db_url"], echo=False)
+    print(engine.table_names())
+    return "Done"
+
+@app.route("/execute", methods=["POST"])
+def execute():
+    query = request.form.get('query')
+    engine = create_engine(app.config["db_url"], echo=False)
+    result = engine.execute(query)
+    
+    for row in result:
+        print(row)
+
+    return "Done"
 
 
 api.add_resource(ServerRes, '/servers')
