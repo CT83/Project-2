@@ -1,0 +1,28 @@
+{% extends "base.html" %}
+{% import "bootstrap/wtf.html" as wtf %}
+
+{% block title %}
+Home
+{% endblock %}
+
+{% block content %}
+
+<!-- <div id="codeeditor"></div> -->
+
+<form action="{{ url_for('execute') }}" method="post">
+  <textarea id="query" name="query"></textarea>
+  <button name="foo" value="run">Run</button>
+</form>
+<script>
+  // var x = document.getElementById("codeeditor");
+  // console.log("hi", x);
+
+  var editor = CodeMirror.fromTextArea(document.getElementById("query"),{
+                value: "CREATE TABLE Persons (ID int NOT NULL,Name varchar(255),Age int);",
+                mode: "sql",
+                matchBrackets: true,
+                lineNumbers: true,
+            });
+            console.log(editor);
+</script>
+{% endblock %}
