@@ -1,0 +1,11 @@
+{% extends "base.html" %}
+{% import "bootstrap/wtf.html" as wtf %}
+
+{% block title %}
+ER diagram
+{% endblock %}
+
+{% block content %}
+<h3>ER diagram</h3>
+<img src="{{url_for('static', filename='er.png')}}" height="500dp">
+{% endblock %}

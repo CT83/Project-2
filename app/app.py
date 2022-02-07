@@ -1,3 +1,4 @@
+from concurrent.futures.process import _ResultItem
 import os
 
 from flask import Flask, jsonify, redirect, render_template, request, url_for
@@ -78,11 +79,11 @@ class ServerRes(Resource):
 
 @app.route("/")
 def home():
-    return render_template("home.html", text="text")
+    return render_template("home.html")
 
 
 class ConnectForm(FlaskForm):
-    db_url = StringField("db_url")
+    db_url = StringField("Database URL")
 
 
 @app.route("/connect", methods=["GET", "POST"])
@@ -104,8 +105,8 @@ def connect():
 @app.route("/list_tables", methods=["GET"])
 def list_tables():
     engine = create_engine(app.config["db_url"], echo=False)
-    print(engine.table_names())
-    return "Done"
+    result = engine.table_names()
+    return render_template("home.html", result = result)
 
 class ExecuteForm(FlaskForm):
     db_url = StringField("")
@@ -123,24 +124,45 @@ def execute():
         for row in result:
             rows += str(row) + '\n'
 
-        return redirect(url_for("output", result = rows))
+        return redirect(url_for("output", result = rows, query = query))
     except:
         return redirect(url_for("home"))
 
 @app.route("/output", methods=["GET", "POST"])
 def output():
-    return render_template("output.html", result = request.args['result'])
+    result = request.args['result']
+    query = request.args['query']
+    return render_template("home.html", result = result, query = query)
 
 
 
-@app.route("/indices", methods=["GET"])
+@app.route("/list_indices", methods=["GET"])
 def indices():
     engine = create_engine(app.config["db_url"], echo=False)
     insp = reflection.Inspector.from_engine(engine)
+    result = ""
     for name in insp.get_table_names():
         for index in insp.get_indexes(name):
-            print(index)
-    return "done"
+            result += index
+    if result == "":
+        result = "No indices"
+    return render_template("home.html", result = result)
+
+from sqlalchemy_schemadisplay import create_schema_graph
+from sqlalchemy import MetaData
+
+@app.route("/er", methods=["GET"])
+def er():
+    engine = create_engine(app.config["db_url"], echo=False)
+    graph = create_schema_graph(metadata=MetaData(app.config["db_url"]),
+        show_datatypes=False,
+        show_indexes=False,
+        rankdir='LR',
+        concentrate=False
+    )
+    graph.write_png('static/er.png') # write out the file
+    return render_template("er.html")
+
 
 
 api.add_resource(ServerRes, "/servers")

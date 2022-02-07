@@ -8,21 +8,36 @@ Home
 {% block content %}
 
 <!-- <div id="codeeditor"></div> -->
+<div class="row mb-5">
+  <div class="col-lg-6">
+    <h3>Execute Query</h3>
+    <form action="{{ url_for('execute') }}" method="post">
+      <textarea id="query" name="query">{{query}}</textarea>
+      <button class="btn btn-secondary my-2 my-sm-0" value="run" type="submit">Run</button>
+    </form>
+  </div>
+  
+  <div class="col-lg-6">
+    <h3>Output</h3>
+    <textarea id="output" name="output" readonly>{{result}}</textarea>
+  </div>
+</div>
 
-<form action="{{ url_for('execute') }}" method="post">
-  <textarea id="query" name="query"></textarea>
-  <button name="foo" value="run">Run</button>
-</form>
 <script>
   // var x = document.getElementById("codeeditor");
   // console.log("hi", x);
 
-  var editor = CodeMirror.fromTextArea(document.getElementById("query"),{
-                value: "CREATE TABLE Persons (ID int NOT NULL,Name varchar(255),Age int);",
-                mode: "sql",
-                matchBrackets: true,
-                lineNumbers: true,
-            });
-            console.log(editor);
+  var editor = CodeMirror.fromTextArea(document.getElementById("query"), {
+    value: "CREATE TABLE Persons (ID int NOT NULL,Name varchar(255),Age int);",
+    mode: "sql",
+    matchBrackets: true,
+    lineNumbers: true,
+  });
+  var temp = CodeMirror.fromTextArea(document.getElementById("output"), {
+    value: "CREATE TABLE Persons (ID int NOT NULL,Name varchar(255),Age int);",
+    mode: "sql",
+    matchBrackets: true,
+    lineNumbers: true,
+  });
 </script>
 {% endblock %}
