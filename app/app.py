@@ -16,6 +16,7 @@ app = Flask(__name__, template_folder="templates")
 api = Api(app)
 
 app.config["SQLALCHEMY_DATABASE_URI"] = os.environ["DATABASE_URL"]
+
 app.config["SECRET_KEY"] = "secret"
 app.config["db_url"] = ""
 db.init_app(app)
@@ -106,6 +107,7 @@ def connect():
 def list_tables():
     engine = create_engine(app.config["db_url"], echo=False)
     result = engine.table_names()
+    result = "Table count - " +  str(len(result)) + '\n' + str(result)
     return render_template("home.html", result = result)
 
 class ExecuteForm(FlaskForm):
@@ -116,9 +118,9 @@ class ExecuteForm(FlaskForm):
 def execute():
     query = request.form.get("query")
     engine = create_engine(app.config["db_url"], echo=False)
-    result = engine.execute(query)
 
     try:
+        result = engine.execute(query)
         rows = ""
 
         for row in result:
@@ -143,7 +145,8 @@ def indices():
     result = ""
     for name in insp.get_table_names():
         for index in insp.get_indexes(name):
-            result += index
+            print(type(index))
+            result += str(index)
     if result == "":
         result = "No indices"
     return render_template("home.html", result = result)
@@ -155,8 +158,8 @@ from sqlalchemy import MetaData
 def er():
     engine = create_engine(app.config["db_url"], echo=False)
     graph = create_schema_graph(metadata=MetaData(app.config["db_url"]),
-        show_datatypes=False,
-        show_indexes=False,
+        show_datatypes=True,
+        show_indexes=True,
         rankdir='LR',
         concentrate=False
     )

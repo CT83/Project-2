@@ -30,9 +30,9 @@ services:
     volumes:
       - pg_db:/var/lib/postgresql/data
     environment:
-      - POSTGRES_USER=user
-      - POSTGRES_PASSWORD=hardpassword
-      - POSTGRES_DB=db_admin_db_slave
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+      - POSTGRES_DB=postgres
     ports:
       - "5432:5432"  
 

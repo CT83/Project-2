@@ -1,11 +1,15 @@
 postgresql://postgres:postgres@localhost:5432/postgres
+postgresql://postgres:postgres@localhost:5432/dvdrental
 postgresql://user:pass@localhost:5432/my_db
+
+sqlite:///test.db
+
+mysql://root:@localhost:3306
 
 ### Postgres -
 
-select role_name from roles where role_id = 4;
 select * from accounts;
-insert into roles (role_id, role_name) VALUES (9, 'voice actor');
+insert into accounts values(2, 'abcd');
 
 ### SQLite
 
@@ -21,4 +25,6 @@ CREATE TABLE Persons (
     PersonID int,
     LastName varchar(255),
     FirstName varchar(255)
-); 
+);
+
+### MariaDB

@@ -6,6 +6,9 @@ ER diagram
 {% endblock %}
 
 {% block content %}
-<h3>ER diagram</h3>
-<img src="{{url_for('static', filename='er.png')}}" height="500dp">
+<span style="display:inline-block;">
+    <h3>ER diagram</h3><a href="{{url_for('static', filename='er.png')}}" class="button" id="btn-download" download="er.png"><button class="btn btn-success" >Download</button></a>
+</span>
+<img src="{{url_for('static', filename='er.png')}}">
+
 {% endblock %}
