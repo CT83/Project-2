@@ -1,7 +1,7 @@
 from concurrent.futures.process import _ResultItem
 import os
 
-from flask import Flask, jsonify, redirect, render_template, request, url_for
+from flask import Flask, jsonify, redirect, render_template, request, url_for, send_file
 from flask_bootstrap import Bootstrap
 from flask_restful import Api, Resource
 from flask_wtf import FlaskForm
@@ -15,10 +15,10 @@ from utils import get_connector_for_database
 app = Flask(__name__, template_folder="templates")
 api = Api(app)
 
-app.config["SQLALCHEMY_DATABASE_URI"] = os.environ["DATABASE_URL"]
+app.config["SQLALCHEMY_DATABASE_URI"] = os.environ.get("DATABASE_URL")
 
 app.config["SECRET_KEY"] = "secret"
-app.config["db_url"] = ""
+app.config["db_url"] = os.environ.get("DATABASE_URL")
 db.init_app(app)
 
 bootstrap = Bootstrap(app)
@@ -166,6 +166,14 @@ def er():
     graph.write_png('static/er.png') # write out the file
     return render_template("er.html")
 
+import subprocess
+
+@app.route("/backup", methods=["GET"])
+def backup():
+    f = open("backup.db", "w")
+    # If db is postgres
+    subprocess.call(["pg_dump", app.config["db_url"]]   , stdout=f)
+    return  send_file(f.name)
 
 
 api.add_resource(ServerRes, "/servers")
