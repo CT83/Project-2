@@ -26,6 +26,15 @@
     {% block title %}{% endblock %}
   </title>
 </head>
+{% with messages = get_flashed_messages() %}
+  {% if messages %}
+    <ul class=flashes>
+    {% for message in messages %}
+      <li>{{ message }}</li>
+    {% endfor %}
+    </ul>
+  {% endif %}
+{% endwith %}
 <body>
   <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
     <div class="container">
@@ -53,7 +62,10 @@
             <a class="nav-link" href="/backup">Backup</a>
           </li>
           <li class="nav-item">
-            <a class="nav-link" href="/about">Disconnect</a>
+            <a class="nav-link" href="/restore">Restore</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="/disconnect">Disconnect</a>
           </li>
         </ul>
       </div>

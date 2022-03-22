@@ -1,0 +1,14 @@
+{% extends "base.html" %}
+{% import "bootstrap/wtf.html" as wtf %}
+
+{% block title %}
+Restore
+{% endblock %}
+
+{% block content %}
+<form action="{{ url_for('restore') }}" method="post" enctype = "multipart/form-data">
+  <label for="myfile">Select a file: </label>
+  <input type="file" id="myfile" name="myfile"><br><br>
+  <input type="submit" class="btn-primary">
+</form>
+{% endblock %}
