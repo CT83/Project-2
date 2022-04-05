@@ -1,6 +1,7 @@
 postgresql://postgres:postgres@localhost:5432/postgres
 postgresql://postgres:postgres@localhost:5432/dvdrental
 sqlite:///test.db
+sqlite:///C:\Users\mithi\projects\test.db
 
 ### Postgres -
 

@@ -1,8 +1,16 @@
 import os
 
-from flask import Flask, jsonify, redirect, render_template, request, url_for, send_file, flash
+from flask import (
+    Flask,
+    redirect,
+    render_template,
+    request,
+    url_for,
+    send_file,
+    flash,
+)
 from flask_bootstrap import Bootstrap
-from flask_restful import Api, Resource
+from flask_restful import Api
 from flask_wtf import FlaskForm
 from sqlalchemy import create_engine
 from sqlalchemy.engine import reflection
@@ -10,8 +18,7 @@ from wtforms import StringField
 from pathlib import Path
 import tempfile
 from sqlalchemy import MetaData
-import contextlib
-
+from shutil import copyfileobj
 
 from extensions import db
 
@@ -23,11 +30,12 @@ app.config["SQLALCHEMY_DATABASE_URI"] = os.environ.get("DATABASE_URL")
 app.config["SECRET_KEY"] = "secret"
 app.config["db_url"] = os.environ.get("DATABASE_URL")
 SQLALCHEMY_TRACK_MODIFICATIONS = False
-app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = SQLALCHEMY_TRACK_MODIFICATIONS
-app.config['UPLOAD_FOLDER'] = tempfile.mkdtemp()
+app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = SQLALCHEMY_TRACK_MODIFICATIONS
+app.config["UPLOAD_FOLDER"] = tempfile.mkdtemp()
 app.config["db_type"] = "postgres"
 db.init_app(app)
 bootstrap = Bootstrap(app)
+
 
 @app.route("/")
 def home():
@@ -44,8 +52,10 @@ def connect():
     if form.validate_on_submit():
         db_url = form.db_url.data
         app.config["db_url"] = db_url
+        print(db_url)
         engine = create_engine(db_url, echo=False)
         app.config["db_type"] = engine.url.database
+        print(app.config["db_type"])
         return redirect(url_for("home"))
 
     # db_url = request.args.get("url")
@@ -135,7 +145,10 @@ def backup():
     if app.config["db_type"] == "mysql":
         # mysqldump db_name > backup-file.sql
         subprocess.call(["mysqldump", app.config["db_url"]], stdout=f)
+    if app.config["db_type"] == "sqlite":
+        return send_file(app.config["db_url"])
     return send_file(f.name)
+
 
 @app.route("/restore", methods=["GET", "POST"])
 def restore():
@@ -144,22 +157,23 @@ def restore():
         return render_template("restore.html")
     file = request.files["myfile"]
 
-    if file.filename == '':
-            flash('No selected file')
-            return redirect(request.url)
+    if file.filename == "":
+        flash("No selected file")
+        return redirect(request.url)
     if file:
         filename = file.filename
-        file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
+        file.save(os.path.join(app.config["UPLOAD_FOLDER"], filename))
 
         restore_from_file(file)
 
         return redirect(url_for("home"))
     return redirect(url_for("home"))
 
+
 def restore_from_file(file):
-    file_path = Path(app.config['UPLOAD_FOLDER']) / file.filename
-    print("file path ",file_path)
-    
+    file_path = Path(app.config["UPLOAD_FOLDER"]) / file.filename
+    print("file path ", file_path)
+
     # mysql db_name < backup-file.sql
     # psql -U username -d dbname < filename.sql
 
@@ -169,10 +183,16 @@ def restore_from_file(file):
     if app.config["db_type"] == "postgres":
         engine.execute("DROP SCHEMA public CASCADE; CREATE SCHEMA public;")
         subprocess.call(["psql", app.config["db_url"]], stdin=f)
-    if app.config["db_type"] == "mysql":
+    elif app.config["db_type"] == "mysql":
         # mysqldump db_name > backup-file.sql
         subprocess.call(["mysql", app.config["db_url"]], stdin=f)
-    
+    else:
+        f = open(file_path, "rb")
+        # open connected db file
+        db_file = open(app.config["db_type"], "wb")
+        # open backup file
+        copyfileobj(f, db_file)
+
     flash("Restored database succesfully")
     return redirect(url_for("home"))
 
