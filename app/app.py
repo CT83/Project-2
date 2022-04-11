@@ -1,24 +1,16 @@
 import os
+import tempfile
+from pathlib import Path
+from shutil import copyfileobj
 
-from flask import (
-    Flask,
-    redirect,
-    render_template,
-    request,
-    url_for,
-    send_file,
-    flash,
-)
+from flask import Flask, flash, redirect, render_template, request, send_file, url_for
 from flask_bootstrap import Bootstrap
 from flask_restful import Api
 from flask_wtf import FlaskForm
-from sqlalchemy import create_engine
+from sqlalchemy import MetaData, create_engine
 from sqlalchemy.engine import reflection
+from sqlalchemy.engine.url import make_url
 from wtforms import StringField
-from pathlib import Path
-import tempfile
-from sqlalchemy import MetaData
-from shutil import copyfileobj
 
 from extensions import db
 
@@ -52,10 +44,8 @@ def connect():
     if form.validate_on_submit():
         db_url = form.db_url.data
         app.config["db_url"] = db_url
-        print(db_url)
         engine = create_engine(db_url, echo=False)
-        app.config["db_type"] = engine.url.database
-        print(app.config["db_type"])
+        app.config["db_type"] = engine.url.drivername
         return redirect(url_for("home"))
 
     # db_url = request.args.get("url")
@@ -108,15 +98,14 @@ def indices():
     result = ""
     for name in insp.get_table_names():
         for index in insp.get_indexes(name):
-            print(type(index))
             result += str(index)
     if result == "":
         result = "No indices"
     return render_template("home.html", result=result)
 
 
-from sqlalchemy_schemadisplay import create_schema_graph
 from sqlalchemy import MetaData
+from sqlalchemy_schemadisplay import create_schema_graph
 
 
 @app.route("/er", methods=["GET"])
@@ -143,8 +132,11 @@ def backup():
     if app.config["db_type"] == "postgres":
         subprocess.call(["pg_dump", app.config["db_url"]], stdout=f)
     if app.config["db_type"] == "mysql":
-        # mysqldump db_name > backup-file.sql
-        subprocess.call(["mysqldump", app.config["db_url"]], stdout=f)
+        # mysqldump -u admin -pmysql testDB > backup.db
+        url = make_url(app.config["db_url"])
+        print("in")
+        # print(subprocess.check_output(["mysqldump", "-u" + url.username, "-p" + url.password, url.database]))
+        subprocess.call(["mysqldump", "-u" + url.username, "-p" + url.password, url.database], stdout=f, shell=True)
     if app.config["db_type"] == "sqlite":
         return send_file(app.config["db_url"])
     return send_file(f.name)
@@ -172,7 +164,6 @@ def restore():
 
 def restore_from_file(file):
     file_path = Path(app.config["UPLOAD_FOLDER"]) / file.filename
-    print("file path ", file_path)
 
     # mysql db_name < backup-file.sql
     # psql -U username -d dbname < filename.sql
@@ -185,7 +176,9 @@ def restore_from_file(file):
         subprocess.call(["psql", app.config["db_url"]], stdin=f)
     elif app.config["db_type"] == "mysql":
         # mysqldump db_name > backup-file.sql
-        subprocess.call(["mysql", app.config["db_url"]], stdin=f)
+        url = make_url(app.config["db_url"])
+
+        subprocess.call(["mysql","-u" + url.username, "-p" + url.password, url.database], stdin=f)
     else:
         f = open(file_path, "rb")
         # open connected db file
