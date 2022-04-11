@@ -16,7 +16,7 @@ Home
       <button class="btn btn-secondary my-2 my-sm-0" value="run" type="submit">Run</button>
     </form>
   </div>
-  
+
   <div class="col-lg-6">
     <h3>Output</h3>
     <textarea id="output" name="output" readonly="true">{{result}}</textarea>
@@ -27,17 +27,45 @@ Home
   // var x = document.getElementById("codeeditor");
   // console.log("hi", x);
 
-  var editor = CodeMirror.fromTextArea(document.getElementById("query"), {
-    value: "CREATE TABLE Persons (ID int NOT NULL,Name varchar(255),Age int);",
-    mode: "sql",
-    matchBrackets: true,
-    lineNumbers: true,
-  });
+
   var temp = CodeMirror.fromTextArea(document.getElementById("output"), {
     value: "CREATE TABLE Persons (ID int NOT NULL,Name varchar(255),Age int);",
     mode: "sql",
     matchBrackets: true,
     lineNumbers: true,
   });
+
+  // q = document.getElementById("query");
+  fetch('http://127.0.0.1:5000/history')
+    .then(async (result) => {
+      let d = await result.json();
+      d = d.history;
+      x = d.length - 2;
+      var editor = CodeMirror.fromTextArea(document.getElementById("query"), {
+    value: "CREATE TABLE Persons (ID int NOT NULL,Name varchar(255),Age int);",
+    mode: "sql",
+    matchBrackets: true,
+    lineNumbers: true,
+  });
+      console.log(d, d.length);
+      document.onkeydown = function (event) {
+        switch (event.keyCode) {
+          case 38:
+            console.log("Up key is pressed.", x, d[x]);
+            editor.getDoc().setValue(d[x]);
+            x--;
+            if (x < 0) { x++; };
+            break;
+          case 40:
+            console.log("Down key is pressed.", x, d[x]);
+            editor.getDoc().setValue(d[x]);
+            x++;
+            if (x >= d.length - 1) { x--; }
+            break;
+        }
+      };
+    });
+
+
 </script>
 {% endblock %}

@@ -11,6 +11,12 @@ from sqlalchemy import MetaData, create_engine
 from sqlalchemy.engine import reflection
 from sqlalchemy.engine.url import make_url
 from wtforms import StringField
+import subprocess
+import csv
+
+from sqlalchemy import MetaData
+from sqlalchemy_schemadisplay import create_schema_graph
+
 
 from extensions import db
 
@@ -70,6 +76,7 @@ class ExecuteForm(FlaskForm):
 @app.route("/execute", methods=["POST"])
 def execute():
     query = request.form.get("query")
+    write_history(query)
     engine = create_engine(app.config["db_url"], echo=False)
 
     try:
@@ -78,7 +85,6 @@ def execute():
 
         for row in result:
             rows += str(row) + "\n"
-
         return redirect(url_for("output", result=rows, query=query))
     except:
         return redirect(url_for("home"))
@@ -104,10 +110,6 @@ def indices():
     return render_template("home.html", result=result)
 
 
-from sqlalchemy import MetaData
-from sqlalchemy_schemadisplay import create_schema_graph
-
-
 @app.route("/er", methods=["GET"])
 def er():
     engine = create_engine(app.config["db_url"], echo=False)
@@ -120,9 +122,6 @@ def er():
     )
     graph.write_png("static/er.png")  # write out the file
     return render_template("er.html")
-
-
-import subprocess
 
 
 @app.route("/backup", methods=["GET"])
@@ -189,6 +188,31 @@ def restore_from_file(file):
     flash("Restored database succesfully")
     return redirect(url_for("home"))
 
+def history_file_absolute_path():
+    history_filename = ".adm.history"
+    return os.path.join(os.path.expanduser("~"), history_filename)
+
+def get_history():
+    history_file_path = history_file_absolute_path()
+
+    if not os.path.exists(history_file_path):
+        return []
+
+    with open(history_file_path, encoding="utf-8") as file:
+        data = file.read()
+        return data.split("br\n")
+
+@app.route("/history", methods=["GET"])
+def history():
+    data = get_history()
+    return {"history" : data}
+
+def write_history(text):
+    history_file_path = history_file_absolute_path()
+    
+    with open(history_file_path, "a", encoding="utf-8") as file:
+        file.write(text + "br\n")
+    
 
 if __name__ == "__main__":
     app.run(debug=True, host="0.0.0.0", port=80)
