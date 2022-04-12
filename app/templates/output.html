@@ -16,12 +16,12 @@ Output
     <input type="submit" value="Execute another query" />
 </form>
 <script>
-    var editor = CodeMirror.fromTextArea(document.getElementById("query"),{
-                    // value: "CREATE TABLE Persons (ID int NOT NULL,Name varchar(255),Age int);",
-                    mode: "sql",
-                    matchBrackets: true,
-                    lineNumbers: true,
-                });
-                console.log(editor);
-    </script>
+    var editor = CodeMirror.fromTextArea(document.getElementById("query"), {
+        // value: "CREATE TABLE Persons (ID int NOT NULL,Name varchar(255),Age int);",
+        mode: "sql",
+        matchBrackets: true,
+        lineNumbers: true,
+    });
+    console.log(editor);
+</script>
 {% endblock %}

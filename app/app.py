@@ -1,4 +1,6 @@
+import csv
 import os
+import subprocess
 import tempfile
 from pathlib import Path
 from shutil import copyfileobj
@@ -10,13 +12,8 @@ from flask_wtf import FlaskForm
 from sqlalchemy import MetaData, create_engine
 from sqlalchemy.engine import reflection
 from sqlalchemy.engine.url import make_url
-from wtforms import StringField
-import subprocess
-import csv
-
-from sqlalchemy import MetaData
 from sqlalchemy_schemadisplay import create_schema_graph
-
+from wtforms import StringField
 
 from extensions import db
 
@@ -135,7 +132,11 @@ def backup():
         url = make_url(app.config["db_url"])
         print("in")
         # print(subprocess.check_output(["mysqldump", "-u" + url.username, "-p" + url.password, url.database]))
-        subprocess.call(["mysqldump", "-u" + url.username, "-p" + url.password, url.database], stdout=f, shell=True)
+        subprocess.call(
+            ["mysqldump", "-u" + url.username, "-p" + url.password, url.database],
+            stdout=f,
+            shell=True,
+        )
     if app.config["db_type"] == "sqlite":
         return send_file(app.config["db_url"])
     return send_file(f.name)
@@ -177,7 +178,9 @@ def restore_from_file(file):
         # mysqldump db_name > backup-file.sql
         url = make_url(app.config["db_url"])
 
-        subprocess.call(["mysql","-u" + url.username, "-p" + url.password, url.database], stdin=f)
+        subprocess.call(
+            ["mysql", "-u" + url.username, "-p" + url.password, url.database], stdin=f
+        )
     else:
         f = open(file_path, "rb")
         # open connected db file
@@ -188,9 +191,11 @@ def restore_from_file(file):
     flash("Restored database succesfully")
     return redirect(url_for("home"))
 
+
 def history_file_absolute_path():
     history_filename = ".adm.history"
     return os.path.join(os.path.expanduser("~"), history_filename)
+
 
 def get_history():
     history_file_path = history_file_absolute_path()
@@ -202,17 +207,19 @@ def get_history():
         data = file.read()
         return data.split("br\n")
 
+
 @app.route("/history", methods=["GET"])
 def history():
     data = get_history()
-    return {"history" : data}
+    return {"history": data}
+
 
 def write_history(text):
     history_file_path = history_file_absolute_path()
-    
+
     with open(history_file_path, "a", encoding="utf-8") as file:
         file.write(text + "br\n")
-    
+
 
 if __name__ == "__main__":
     app.run(debug=True, host="0.0.0.0", port=80)
