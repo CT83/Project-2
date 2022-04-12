@@ -1,4 +1,3 @@
-import csv
 import os
 import subprocess
 import tempfile
@@ -127,7 +126,7 @@ def backup():
     f = open("backup.db", "w")
     if app.config["db_type"] == "postgres":
         subprocess.call(["pg_dump", app.config["db_url"]], stdout=f)
-    if app.config["db_type"] == "mysql":
+    elif app.config["db_type"] == "mysql":
         # mysqldump -u admin -pmysql testDB > backup.db
         url = make_url(app.config["db_url"])
         print("in")
@@ -137,8 +136,9 @@ def backup():
             stdout=f,
             shell=True,
         )
-    if app.config["db_type"] == "sqlite":
-        return send_file(app.config["db_url"])
+    else:
+        url = make_url(app.config["db_url"])
+        return send_file(url.database)
     return send_file(f.name)
 
 
@@ -182,11 +182,15 @@ def restore_from_file(file):
             ["mysql", "-u" + url.username, "-p" + url.password, url.database], stdin=f
         )
     else:
+        print(file_path)
+        url = make_url(app.config["db_url"])
         f = open(file_path, "rb")
-        # open connected db file
-        db_file = open(app.config["db_type"], "wb")
-        # open backup file
+        print(url.database)
+        db_file = open(url.database, "wb")
+        print(db_file)
         copyfileobj(f, db_file)
+        f.close()
+        db_file.close()
 
     flash("Restored database succesfully")
     return redirect(url_for("home"))

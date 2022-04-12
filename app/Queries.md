@@ -4,7 +4,7 @@ sqlite:///test.db
 sqlite:///C:\Users\mithi\projects\test.db
 mysql://mysql:mysql@localhost/testDB
 mysql://admin:mysql@localhost/testDB
-
+postgresql://jctsfujq:7oXX0GQxPfB_bidhtWBY0rEbISobWwLr@arjuna.db.elephantsql.com/jctsfujq
 
 ### Postgres -
 
@@ -13,7 +13,12 @@ insert into accounts values(2, 'abcd');
 
 ### SQLite
 
-insert into Persons VALUES (4, 'tom', 35);
+CREATE TABLE persons (
+	contact_id INTEGER PRIMARY KEY,
+	first_name TEXT NOT NULL,
+	last_name TEXT NOT NULL
+);
+insert into Persons VALUES (4, 'tom', 'nom');
 select * from Persons;
 
 ### MySQL
@@ -31,4 +36,3 @@ CREATE TABLE Persons (
 mysqld
 \sql
 \connect root@localhost
-
