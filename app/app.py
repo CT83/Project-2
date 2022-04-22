@@ -124,7 +124,7 @@ def er():
 def backup():
     print("Type of database - ", app.config["db_type"])
     f = open("backup.db", "w")
-    if app.config["db_type"] == "postgres":
+    if app.config["db_type"] == "postgresql":
         subprocess.call(["pg_dump", app.config["db_url"]], stdout=f)
     elif app.config["db_type"] == "mysql":
         # mysqldump -u admin -pmysql testDB > backup.db
@@ -171,7 +171,7 @@ def restore_from_file(file):
     f = open(file_path)
     engine = create_engine(app.config["db_url"], echo=False)
 
-    if app.config["db_type"] == "postgres":
+    if app.config["db_type"] == "postgresql":
         engine.execute("DROP SCHEMA public CASCADE; CREATE SCHEMA public;")
         subprocess.call(["psql", app.config["db_url"]], stdin=f)
     elif app.config["db_type"] == "mysql":
